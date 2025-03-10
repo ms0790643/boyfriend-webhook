@@ -4,7 +4,7 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-// Ocard 原始 Webhook
+// Ocard API Webhook
 const OCARD_WEBHOOK_URL = "https://api.ocard.co/bot_line/webhook?app_id=boyfriend";
 
 // 營業時間
@@ -14,7 +14,7 @@ const CLOSE_TIME = 22; // 晚上10點
 // LINE Webhook 處理
 app.post("/webhook", async (req, res) => {
     try {
-        console.log("Webhook 收到訊息:", JSON.stringify(req.body, null, 2)); // 🛠️ Debug 日誌
+        console.log("Webhook 收到訊息:", JSON.stringify(req.body, null, 2)); // 🛠️ Debug 記錄
 
         const event = req.body.events?.[0]; 
         if (!event) {
@@ -53,8 +53,20 @@ app.post("/webhook", async (req, res) => {
             return res.status(200).send("Intercepted binding message");
         }
 
-        // **轉發給 Ocard 原始 Webhook**
-        const ocardResponse = await axios.post(OCARD_WEBHOOK_URL, req.body, {
+        // **調整發送到 Ocard 的資料格式**
+        const ocardData = {
+            destination: req.body.destination,
+            events: req.body.events.map(evt => ({
+                type: evt.type,
+                message: evt.message,
+                timestamp: evt.timestamp,
+                source: evt.source,
+                webhookEventId: evt.webhookEventId
+            }))
+        };
+
+        // **發送請求到 Ocard**
+        const ocardResponse = await axios.post(OCARD_WEBHOOK_URL, ocardData, {
             headers: {
                 "Content-Type": "application/json"
             }
