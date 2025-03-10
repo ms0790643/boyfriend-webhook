@@ -54,10 +54,17 @@ app.post("/webhook", async (req, res) => {
         }
 
         // **轉發給 Ocard 原始 Webhook**
-        await axios.post(OCARD_WEBHOOK_URL, req.body);
+        const ocardResponse = await axios.post(OCARD_WEBHOOK_URL, req.body, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        console.log("成功轉發至 Ocard:", ocardResponse.data);
         res.status(200).send("Forwarded to Ocard");
+
     } catch (error) {
-        console.error("Webhook Error:", error);
+        console.error("Webhook Error:", error.response?.data || error.message);
         res.status(500).send("Server error");
     }
 });
@@ -67,4 +74,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
