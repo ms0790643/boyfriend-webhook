@@ -1,0 +1,12 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # 每 5 分鐘運行一次
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep Render Awake
+        run: curl -X GET "https://boyfriend-webhook.onrender.com/webhook"
