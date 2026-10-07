@@ -3,7 +3,7 @@ const axios = require("axios");
 const crypto = require("crypto");
 
 const app = express();
-const VERSION = "pilot-gateway-2026-10-07-all-day-r1";
+const VERSION = "cutover-gateway-2026-10-07-r1";
 const OCARD_URL = "https://api.ocard.co/bot_line/webhook?app_id=boyfriend";
 app.use("/webhook", express.raw({ type: "application/json", limit: "2mb" }));
 
@@ -21,6 +21,11 @@ function aiDecision(events, now = new Date()) {
   try { url = new URL(process.env.AI_WORKER_WEBHOOK_URL); }
   catch { return "missing_or_invalid_worker_url"; }
   if (url.protocol !== "https:") return "worker_url_requires_https";
+  if (process.env.AI_PUBLIC_ENABLED === "true") {
+    return events.some(e => e.type === "message" && e.message?.type === "text" &&
+      e.source?.type === "user" && typeof e.source.userId === "string" && e.source.userId)
+      ? "eligible" : "no_eligible_event";
+  }
   const testers = new Set(String(process.env.AI_TEST_USER_IDS || "")
     .split(",").map(id => id.trim()).filter(Boolean));
   if (!testers.size) return "missing_test_user_ids";
