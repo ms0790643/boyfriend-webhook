@@ -3,7 +3,7 @@ const axios = require("axios");
 const crypto = require("crypto");
 
 const app = express();
-const VERSION = "pilot-gateway-2026-10-07";
+const VERSION = "pilot-gateway-2026-10-07-all-day-r1";
 const OCARD_URL = "https://api.ocard.co/bot_line/webhook?app_id=boyfriend";
 app.use("/webhook", express.raw({ type: "application/json", limit: "2mb" }));
 
@@ -29,7 +29,7 @@ function aiDecision(events, now = new Date()) {
   }).formatToParts(now);
   const clock = Number(parts.find(p => p.type === "hour").value) * 60 +
     Number(parts.find(p => p.type === "minute").value);
-  if (clock < 1260 || clock >= 1305) return "outside_test_window";
+  if (process.env.AI_TEST_ALL_DAY !== "true" && (clock < 1260 || clock >= 1305)) return "outside_test_window";
   return events.some(e => e.type === "message" && e.message?.type === "text" &&
     e.source?.type === "user" && testers.has(e.source.userId))
     ? "eligible" : "no_eligible_event";
